@@ -91,6 +91,18 @@ def log(paraml, input=None, bot=None):
     if input.command == 'NICK':
         input.chan = 'nick'
 
+    if input.command == 'ERROR':
+        input.chan = 'error'
+
+    if input.chan == '*':
+        reply_code = int(input.command)
+
+        if 400 <= reply_code <= 599:
+            input.chan = 'error'
+        else:
+            input.chan = 'server'
+
+
     beau = beautify(input)
 
     if beau == '':  # don't log this
