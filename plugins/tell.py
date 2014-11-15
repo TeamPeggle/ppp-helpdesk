@@ -69,6 +69,7 @@ def showtells(inp, nick='', chan='', pm=None, db=None):
     db.commit()
 
 
+@hook.command('note')
 @hook.command
 def tell(inp, nick='', chan='', db=None, conn=None):
     ".tell <nick> <message> -- relay <message> to <nick> when <nick> is around"
