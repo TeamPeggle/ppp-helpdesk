@@ -120,8 +120,8 @@ def weather(inp, chan='', nick='', reply=None, db=None, api_key=None):
     info['humid'] = obs['relative_humidity']
     info['wind'] = 'Wind: {mph}mph/{kph}kph' \
         .format(mph=obs['wind_mph'], kph=obs['wind_kph'])
-    reply('{city}: {weather}, {t_f}F/{t_c}C'
-          '(H:{h_f}F/{h_c}C L:{l_f}F/{l_c}C)'
+    reply('{city}: {weather}, {t_f}F/{t_c}C '
+          '(High: {h_f}F/{h_c}C; Low: {l_f}F/{l_c}C)'
           ', Humidity: {humid}, {wind}'.format(**info))
 
     lat = float(obs['display_location']['latitude'])
