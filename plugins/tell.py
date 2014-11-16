@@ -86,8 +86,8 @@ def tell(inp, nick='', chan='', db=None, conn=None):
     if chan.lower() == user_from.lower():
         chan = 'a pm'
 
-    if user_to in (user_from.lower(), conn.nick.lower()):
-        return "No."
+    if user_to == user_from.lower():
+        return "You can't send a message to yourself."
 
     db_init(db)
 
