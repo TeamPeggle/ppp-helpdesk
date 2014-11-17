@@ -1,7 +1,7 @@
 import re
 import time
 
-from util import hook, http
+from util import hook, http, timesince
 
 
 youtube_re = (r'(?:youtube.*?(?:v=|/v/)|youtu\.be/|yooouuutuuube.*?id=)'
@@ -38,6 +38,26 @@ def get_video_description(vid_id, api_key):
           ).format(duration=duration, likes=likes, dislikes=dislikes, views=views, published=published, **j)
 
     # TODO: figure out how to detect NSFW videos
+
+    if 'rating' in j:
+        out += ' - rated \x02%.2f/5.0\x02 (%d)' % (j['rating'],
+                                                   j['ratingCount'])
+
+    if 'viewCount' in j:
+        out += ' - \x02%s\x02 views' % group_int_digits(j['viewCount'])
+
+    upload_time_since = timesince.timesince(
+        time.mktime(
+            time.strptime(j['uploaded'], "%Y-%m-%dT%H:%M:%S.000Z")
+        )
+    )
+
+    upload_time = time.strptime(j['uploaded'], "%Y-%m-%dT%H:%M:%S.000Z")
+
+    out += ' - \x02%s\x02 ago by \x02%s\x02' % (upload_time_since, j['uploader'])
+
+    if 'contentRating' in j:
+        out += ' - \x034NSFW\x02'
 
     return out
 

@@ -1,10 +1,10 @@
 import random
 import re
-from time import strptime, strftime
+from time import strptime, mktime
 from urllib import quote
+from util import timesince
 
 from util import hook, http
-
 
 @hook.api_key('twitter')
 @hook.command
@@ -81,10 +81,9 @@ def twitter(inp, api_key=None):
     screen_name = tweet["user"]["screen_name"]
     time = tweet["created_at"]
 
-    time = strftime('%Y-%m-%d %H:%M:%S',
-                    strptime(time, '%a %b %d %H:%M:%S +0000 %Y'))
+    time = '%s ago' % timesince.timesince(mktime(strptime(time, '%a %b %d %H:%M:%S +0000 %Y')))
 
-    return "%s \x02%s\x02: %s" % (time, screen_name, text)
+    return "%s by \x02%s\x02: %s" % (time, screen_name, text)
 
 
 @hook.api_key('twitter')
