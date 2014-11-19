@@ -7,15 +7,15 @@ def format_comment(data):
         return None
 
     if data['over_18']:
-        data['nsfw_tag'] = '\x0306NSFW\x0f - '
+        data['nsfw_tag'] = '- \x034NSFW\x0f'
     else:
         data['nsfw_tag'] = ''
 
     data['time_ago'] = timesince.timesince(data['created_utc'])
 
     return (
-        "{nsfw_tag:s}\x02{title:s}\x02 (\x0307{ups:d}\x0f|\x0312{downs:d}\x0f) "
-        "- {time_ago:s} ago by {author:s} to /r/{subreddit:s} - {num_comments:d} comments"
+        "\x02{title:s}\x02 (\x0307{ups:d}\x0f|\x0312{downs:d}\x0f) "
+        "- {time_ago:s} ago by {author:s} to /r/{subreddit:s} - {num_comments:d} comments{nsfw_tag:s}"
     ).format(**data)
 
     return data
