@@ -71,7 +71,7 @@ def showtells(inp, nick='', chan='', pm=None, db=None):
 
 @hook.command('note')
 @hook.command
-def tell(inp, nick='', chan='', db=None, conn=None):
+def tell(inp, nick='', chan='', db=None, conn=None, bot=None):
     ".tell <nick> <message> -- relay <message> to <nick> when <nick> is around"
 
     query = inp.split(' ', 1)
@@ -91,8 +91,10 @@ def tell(inp, nick='', chan='', db=None, conn=None):
 
     db_init(db)
 
+    queue_limit = bot.config.get('tell_limit', 5)
+
     if db.execute("select count() from tell where user_to=?",
-                  (user_to,)).fetchone()[0] >= 5:
+                  (user_to,)).fetchone()[0] >= queue_limit:
         return "That person has too many things queued."
 
     try:
