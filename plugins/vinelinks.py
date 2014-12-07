@@ -1,6 +1,7 @@
 import re
  
-from time import mktime, strptime
+from time import strptime
+from calendar import timegm
 from util import hook, http, timesince
  
 @hook.regex(r'vine.co/v/([A-Za-z0-9]+)')
@@ -18,7 +19,9 @@ def vine_url(match):
 
     if info['data']['count'] > 0 and info:
         info['data']['records'][0]['upload_date_since'] = timesince.timesince(
-            mktime(strptime(info['data']['records'][0]['created'][:-7], '%Y-%m-%dT%H:%M:%S'))
+            timegm(
+                strptime(info['data']['records'][0]['created'][:-7], '%Y-%m-%dT%H:%M:%S')
+            )
         )
         info['data']['records'][0]['likes_count'] = info['data']['records'][0]['likes']['count']
         info['data']['records'][0]['loops_count'] = info['data']['records'][0]['loops']['count']

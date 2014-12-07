@@ -1,4 +1,5 @@
-from time import mktime, strptime
+from time import strptime
+from calendar import timegm
 from util import hook, http, timesince
 
 
@@ -9,7 +10,7 @@ def vimeo_url(match):
 
     if info:
         info[0]['upload_date_since'] = timesince.timesince(
-            mktime(strptime(info[0]['upload_date'], '%Y-%m-%d %H:%M:%S'))
+            timegm(strptime(info[0]['upload_date'], '%Y-%m-%d %H:%M:%S'))
         )
         return ("\x02%(title)s\x02 - length \x02%(duration)ss\x02 - "
                 "\x02%(stats_number_of_likes)s\x02 likes - "

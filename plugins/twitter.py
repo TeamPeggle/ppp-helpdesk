@@ -1,6 +1,7 @@
 import random
 import re
-from time import strptime, mktime
+from time import strptime
+from calendar import timegm
 from urllib import quote
 from util import timesince
 
@@ -81,7 +82,11 @@ def twitter(inp, api_key=None):
     screen_name = tweet["user"]["screen_name"]
     time = tweet["created_at"]
 
-    time = '%s ago' % timesince.timesince(mktime(strptime(time, '%a %b %d %H:%M:%S +0000 %Y')))
+    time = '%s ago' % timesince.timesince(
+        timegm(
+            strptime(time, '%a %b %d %H:%M:%S +0000 %Y')
+        )
+    )
 
     return "%s by \x02%s\x02: %s" % (time, screen_name, text)
 
