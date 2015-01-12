@@ -40,7 +40,7 @@ def tellinput(paraml, input=None, pm=None, db=None):
 
         pm(reply)
 
-    db.execute("delete from tell where user_to=lower(?)", (input.nick, message))
+    db.execute("delete from tell where user_to=lower(?)", (input.nick))
     db.commit()
 
 @hook.command('note')
