@@ -24,50 +24,24 @@ def get_tells(db, user_to):
 
 @hook.singlethread
 @hook.event('PRIVMSG')
-def tellinput(paraml, input=None, db=None):
-    if 'showtells' in input.msg.lower():
-        return
-
+def tellinput(paraml, input=None, pm=None, db=None):
     db_init(db)
 
     tells = get_tells(db, input.nick)
 
-    if tells:
-        user_from, message, time, chan = tells[0]
-        reltime = timesince.timesince(time)
-
-        reply = "%s said %s ago in %s: %s" % (user_from, reltime, chan,
-                                              message)
-        if len(tells) > 1:
-            reply += " (+%d more, .showtells to view)" % (len(tells) - 1)
-
-        db.execute("delete from tell where user_to=lower(?) and message=?",
-                   (input.nick, message))
-        db.commit()
-        input.pm(reply)
-
-
-@hook.command(autohelp=False)
-def showtells(inp, nick='', chan='', pm=None, db=None):
-    ".showtells -- view all pending tell messages (sent in PM)."
-
-    db_init(db)
-
-    tells = get_tells(db, nick)
-
     if not tells:
-        pm("You have no pending tells.")
         return
 
     for tell in tells:
         user_from, message, time, chan = tell
         past = timesince.timesince(time)
-        pm("%s said %s ago in %s: %s" % (user_from, past, chan, message))
 
-    db.execute("delete from tell where user_to=lower(?)",
-               (nick,))
+        reply = "%s said %s ago in %s: %s" % (user_from, past, chan, message)
+
+        pm(reply)
+
+    db.execute("delete from tell where user_to=lower(?)", (input.nick, message))
     db.commit()
-
 
 @hook.command('note')
 @hook.command
