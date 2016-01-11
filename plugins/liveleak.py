@@ -31,7 +31,7 @@ def liveleak_url(match):
 		info['upload_date_since'] = timesince.timesince(
 			timegm(
 				strptime(
-					info['upload_date_since'], '%b'
+					info['upload_date_since'], '%b-%d-%Y'
 				)
 			)
 		)
