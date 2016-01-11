@@ -22,7 +22,7 @@ def liveleak_url(match):
 
 	info['section'] = re.search('In: ((?:[^ ]+\s)+)\s{6}', info_text).group(1).strip()
 	info['username'] = re.search('By: ((?:[^ ]+\s)+)\s{6}', info_text).group(1).strip()
-	info['upload_date_since'] = re.search('Added: (.+?)\s*Occurred', info_text).group(1).strip()
+	info['upload_date_since'] = re.search('Added: (.+?)\s*(?:Occurred On|By):', info_text).group(1).strip()
 	info['views_count'] = int(re.search('Views: (\d+)', info_text).group(1).strip())
 
 	if u'ago' in info['upload_date_since']:
