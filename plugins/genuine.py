@@ -7,7 +7,7 @@ def genuine(inp, say=None):
 
     output = check_output("cscript %WINDIR%\System32\slmgr.vbs /dli", shell=True)
 
-    if "License Status: Licensed" in "\n".join(output):
+    if "License Status: Licensed" in "".join(output.decode("ascii")):
         say("they stopped freeloading!  yay")
     else:
         say("whoever runs this server is a terrible person who stole windows")
