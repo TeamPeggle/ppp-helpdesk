@@ -1,7 +1,7 @@
 from util import hook, http
 import re
 
-TINDECK_LISTEN_REGEX = re.compile(r'tindeck\.com/listen/([a-zA-Z0-9]+)')
+TINDECK_LISTEN_REGEX = (r'tindeck\.com/listen/([a-zA-Z0-9]+)', re.I)
 
 def tindeck_id(id, include_url = False):
     data = {
@@ -81,13 +81,13 @@ def tindeck(inp):
 
     unescapedUrl = search_result['results'][0]['unescapedUrl']
 
-    match = TINDECK_LISTEN_REGEX.search(unescapedUrl)
+    match = re.compile(*TINDECK_LISTEN_REGEX).search(unescapedUrl)
 
     if not match:
         return "not found"
 
     return tindeck_id(match.group(1), True)
 
-@hook.regex(TINDECK_LISTEN_REGEX)
+@hook.regex(*TINDECK_LISTEN_REGEX)
 def tindeck_url(match):
     return tindeck_id(match.group(1))
