@@ -1,13 +1,29 @@
 import math
 import time
 
-from util import hook, urlnorm, timesince
+from util import hook, urlnorm, timesince, http
 
+title_length = 80
 
 expiration_period = 60 * 60 * 24  # 1 day
 
 ignored_urls = [urlnorm.normalize("http://google.com")]
 
+# We have a bunch of much better plugins to handle these
+ignored_title_urls = [
+    'vine.co/',
+    'reddit.com',
+    'imdb.com',
+    'liveleak.com',
+    'twitter.com',
+    'youtube.com',
+    'vimeo.com',
+    'tinyurl.com',
+    'rottentomatoes.com',
+    'steampowered.com',
+    'steamcommunity.com',
+    '//t.co'
+]
 
 def db_init(db):
     db.execute("create table if not exists urlhistory"
@@ -27,6 +43,19 @@ def get_history(db, chan, url):
     return db.execute("select nick, time from urlhistory where "
                       "chan=? and url=? order by time desc", (chan, url)).fetchall()
 
+def get_title(url):
+    for ignored_url in ignored_title_urls:
+        if ignored_url in url:
+            return None
+
+    try:
+        html = http.get_html(url)
+        title = html.xpath('/html/head/title')[0]
+        title = title.text.strip()
+    except:
+        return None
+
+    return (title[:title_length] + '..') if len(title) > title_length else title
 
 def nicklist(nicks):
     nicks = sorted(dict(nicks), key=unicode.lower)
@@ -35,16 +64,14 @@ def nicklist(nicks):
     else:
         return ', and '.join((', '.join(nicks[:-1]), nicks[-1]))
 
+def format_reply(url, history):
+    title = get_title(url)
 
-def format_reply(history):
     if not history:
-        return
+        return title
 
     last_nick, recent_time = history[0]
     last_time = timesince.timesince(recent_time)
-
-    if len(history) == 1:
-        return "%s linked that %s ago." % (last_nick, last_time)
 
     hour_span = math.ceil((time.time() - history[-1][1]) / 3600)
     hour_span = '%.0f hours' % hour_span if hour_span > 1 else 'hour'
@@ -57,10 +84,13 @@ def format_reply(history):
     else:
         last = "last linked by %s %s ago" % (last_nick, last_time)
 
-    return "that url has been posted %s in the past %s by %s (%s)." % (ordinal,
+    if title:
+        title = "%s - " % (title)
+    else:
+        title = ""
+
+    return "%sthat url has been posted %s in the past %s by %s (%s)." % (title, ordinal,
                                                                        hour_span, nicklist(history), last)
-
-
 @hook.regex(r'([a-zA-Z]+://|www\.)[^ ]+')
 def urlinput(match, nick='', chan='', db=None, bot=None):
     db_init(db)
@@ -76,5 +106,4 @@ def urlinput(match, nick='', chan='', db=None, bot=None):
             if name.lower() in inp:  # person was probably quoting a line
                 return               # that had a link. don't remind them.
 
-        if nick not in dict(history):
-            return format_reply(history)
+        return format_reply(url, history)
