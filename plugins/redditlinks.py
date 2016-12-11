@@ -20,6 +20,29 @@ def format_comment(data):
 
     return data
 
+def format_subreddit(data):
+    if not data:
+        return None
+
+    if data['over18']:
+        data['nsfw_tag'] = '- \x034NSFW\x0f'
+    else:
+        data['nsfw_tag'] = ''
+
+    if data['quarantine']:
+        data['quarantine_tag'] = ' - QUARANTINED '
+    else:
+        data['quarantine_tag'] = ''
+
+    data['time_ago'] = timesince.timesince(data['created_utc'])
+
+    return (
+        "\x02/r/{display_name} - {description:s}\x02 - {subscribers:d} subscribers "
+        "- created {time_ago:s} ago {nsfw_tag:s}{quarantine_tag:s}"
+    ).format(**data)
+
+    return data
+
 def info_by_reddit_id(type, id):
     url = 'http://www.reddit.com/by_id/%s_%s.json' % (type, id)
 
@@ -35,6 +58,18 @@ def info_by_reddit_id(type, id):
 
     return data
 
-@hook.regex(r'reddit.com/r/([A-Za-z0-9]+)/comments/([a-z0-9A-Z]+)')
+def info_by_reddit_subreddit(subreddit):
+    url = 'http://www.reddit.com/r/%s/about.json' % (subreddit)
+
+    data = http.get_json(url)
+
+    return format_subreddit(data['data'])
+
+
+@hook.regex(r'reddit.com/r/([^/]+)/comments/([^/]+)')
 def link_reddit_comments(match):
     return info_by_reddit_id('t3', match.group(2))
+
+@hook.regex(r'reddit.com/r/([^/]+)$')
+def link_reddit_subreddit(match):
+    return info_by_reddit_subreddit(match.group(1))
