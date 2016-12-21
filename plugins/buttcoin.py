@@ -14,18 +14,29 @@ import twitter
 @hook.command('bit', autohelp=False)
 @hook.command(autohelp=False)
 def buttcoin(inp, api_key=None):
-    ".bitcoin -- gets current exchange rate for bitcoins from BTC-e"
-    data = http.get_json("https://btc-e.com/api/2/btc_usd/ticker")
+    ".bitcoin -- gets current exchange rate for bitcoins"
+
+    inp = inp or 'USD'
+    inp = inp.upper()
+
+    data = http.get_json("https://blockchain.info/ticker")
+
+    if inp in data:
+      data = data[inp]
+      data['currency'] = inp
+    else:
+      return 'Invalid currency'
 
     buttcoin = twitter.twitter("buttcoin", api_key)
 
     buttcoin = unicodedata.normalize('NFKD', buttcoin)
     buttcoin = buttcoin.encode('ascii', 'replace')
-    
-    data['ticker']['buttcoin'] = buttcoin
+
+    data['buttcoin'] = buttcoin
     
     return (
-        "USD/BTC: \x0307{buy:.0f}\x0f - High: \x0307{high:.0f}\x0f"
-        " - Low: \x0307{low:.0f}\x0f - Volume: {vol_cur:.0f}"
+        "{currency:s}/BTC: \x0307{symbol:s}{last:.2f}\x0f "
+        " - High: \x0307{symbol:s}{buy:.2f}\x0f"
+        " - Low: \x0307{symbol:s}{sell:.2f}\x0f"
         "  ---  {buttcoin:s}"
-    ).format(**data['ticker'])
+    ).format(**data)
