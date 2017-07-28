@@ -34,7 +34,7 @@ def buttcoin(inp, api_key=None):
 
     data['buttcoin'] = buttcoin
     
-    return (
+    return unicode(
         "{currency:s}/BTC: \x0307{symbol:s}{last:.2f}\x0f "
         " - High: \x0307{symbol:s}{buy:.2f}\x0f"
         " - Low: \x0307{symbol:s}{sell:.2f}\x0f"
