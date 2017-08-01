@@ -1,2 +1,3 @@
 lxml
 praw
+python-amazon-product-api
