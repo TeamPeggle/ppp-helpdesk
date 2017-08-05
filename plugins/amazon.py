@@ -1,5 +1,4 @@
 import bottlenose
-import bitly_api
 from lxml import etree
 from util import hook, http
 
@@ -23,16 +22,10 @@ def amazon(inp, api_key=None):
         return errorMsg
 
     item = root.find('.//' + NS + 'Item')  # First item in results
+    asin = item.find(NS + 'ASIN').text
     url = item.find(NS + 'DetailPageURL').text
 
     itemAttributes = item.find(NS + 'ItemAttributes')
     title = itemAttributes.find(NS + 'Title').text
 
-    if 'bitly' not in api_key:
-        return title + ": " + url
-
-    bitly = bitly_api.Connection(access_token=api_key['bitly'])
-    bitlyResponse = bitly.shorten(url)
-    shortUrl = bitlyResponse['url']
-
-    return title + ": " + shortUrl
+    return "%s - https://amzn.com/%s/?tag=%s" % (title, asin, api_key['associate_tag'])
