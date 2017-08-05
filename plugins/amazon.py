@@ -28,4 +28,4 @@ def amazon(inp, api_key=None):
     itemAttributes = item.find(NS + 'ItemAttributes')
     title = itemAttributes.find(NS + 'Title').text
 
-    return "%s - https://amzn.com/%s/?tag=%s" % (title, asin, api_key['associate_tag'])
+    return "%s - https://amzn.com/%s?tag=%s" % (title, asin, api_key['associate_tag'])
