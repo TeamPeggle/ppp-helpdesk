@@ -7,10 +7,10 @@ from util import hook, http
 @hook.command('amazon')
 @hook.command('a')
 def amazon(inp, api_key=None):
-    if api_key is None or 'AWS_KEY' not in api_key or 'SECRET_KEY' not in api_key or 'ASSOCIATE_TAG' not in api_key:
+    if api_key is None or 'access_key' not in api_key or 'secret_key' not in api_key or 'associate_tag' not in api_key:
        return "missing API key"
 
-    amazon = bottlenose.Amazon(api_key['AWS_KEY'], api_key['SECRET_KEY'], api_key['ASSOCIATE_TAG'], Region='US')
+    amazon = bottlenose.Amazon(api_key['access_key'], api_key['secret_key'], api_key['associate_tag'], Region='US')
     response = amazon.ItemSearch(Keywords=inp, SearchIndex='All')
 
     NS = '{http://webservices.amazon.com/AWSECommerceService/2013-08-01}'
