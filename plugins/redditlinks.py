@@ -1,5 +1,3 @@
-import re
-from cookielib import Cookie
 from util import hook, http, timesince
 
 def format_comment(data):

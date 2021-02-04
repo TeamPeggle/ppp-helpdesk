@@ -38,7 +38,7 @@ def sieve_suite(bot, input, func, kind, args):
             if func.__name__ in acl['whitelist']:
                 return None
         if 'blacklist-nicks' in acl:
-            denied_nicks = map(unicode.lower, acl['blacklist-nicks'])
+            denied_nicks = [nick.lower() for nick in acl['blacklist-nicks']]
             if input.nick.lower() in denied_nicks:
                 return None
 

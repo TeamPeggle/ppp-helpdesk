@@ -1,6 +1,6 @@
 import re
-from urllib import urlencode
-from cookielib import Cookie
+from urllib.parse import urlencode
+from http.cookiejar import Cookie
 from util import hook, http
 
 @hook.regex(r'steamcommunity.com/(profiles)/([0-9]+)')
@@ -61,24 +61,24 @@ def link_steam_app(match):
     #    version, name, value, port, port_specified, domain, domain_specified,
     #    domain_initial_dot, path, path_specified, secure, expiry, comment, comment_url, rest)
     age_gate_cookie = Cookie(
-        None, 'birthtime', '473403601', '80', '80', 'store.steampowered.com', 'store.steampowered.com',
+        0, 'birthtime', '473403601', '80', '80', 'store.steampowered.com', 'store.steampowered.com',
         None, '/', '/', False, '2147483600', None, None, None, None
     )
 
     mature_content_cookie = Cookie(
-        None, 'mature_content', '1', '80', '80', 'store.steampowered.com', 'store.steampowered.com',
+        0, 'mature_content', '1', '80', '80', 'store.steampowered.com', 'store.steampowered.com',
         None, '/', '/', False, '2147483600', None, None, None, None
     )
 
-    http.jar.set_cookie(age_gate_cookie)
-    http.jar.set_cookie(mature_content_cookie)
+    http.get_cookie_jar().set_cookie(age_gate_cookie)
+    http.get_cookie_jar().set_cookie(mature_content_cookie)
 
     try:
         doc = http.get_html(
             url,
             cookies=True
         )
-    except http.HTTPError, e:
+    except http.HTTPError:
         return None
 
     try:
@@ -134,7 +134,7 @@ def steam(inp):
             url,
             cookies=True
         )
-    except http.HTTPError, e:
+    except http.HTTPError:
         return None
 
     try:
