@@ -87,6 +87,16 @@ def link_steam_app(match):
         return None
 
     try:
+        has_mature_content = len(doc.find_class('mature_content_notice')) > 0
+
+        if has_mature_content:
+            nsfw_tag = ' - \x034NSFW\x0f'
+        else:
+            nsfw_tag = ''
+    except:
+        nsfw_tag = ''
+
+    try:
         rating = doc.find_class('game_review_summary')[0].text_content().strip()
     except:
         rating = 'Unknown'
@@ -123,7 +133,8 @@ def link_steam_app(match):
     except:
         tags = ''
 
-    return '\x02%s\x02 - %s - User rating is %s%s' % (title, price, rating, tags)
+    return '\x02%s\x02%s - %s - User rating is %s%s' % (title, nsfw_tag, price, rating, tags)
+
 
 @hook.command
 def steam(inp):
