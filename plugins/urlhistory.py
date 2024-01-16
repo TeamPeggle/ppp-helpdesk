@@ -30,22 +30,27 @@ ignored_title_urls = [
 ]
 
 def db_init(db):
-    db.execute("create table if not exists urlhistory"
-               "(chan, url, nick, time)")
+    db.execute("create table if not exists urlhistory" "(chan, url, nick, time)")
     db.commit()
 
 
 def insert_history(db, chan, url, nick):
-    db.execute("insert into urlhistory(chan, url, nick, time) "
-               "values(?,?,?,?)", (chan, url, nick, time.time()))
+    db.execute(
+        "insert into urlhistory(chan, url, nick, time) " "values(?,?,?,?)",
+        (chan, url, nick, time.time()),
+    )
     db.commit()
 
 
 def get_history(db, chan, url):
-    db.execute("delete from urlhistory where time < ?",
-               (time.time() - expiration_period,))
-    return db.execute("select nick, time from urlhistory where "
-                      "chan=? and url=? order by time desc", (chan, url)).fetchall()
+    db.execute(
+        "delete from urlhistory where time < ?", (time.time() - expiration_period,)
+    )
+    return db.execute(
+        "select nick, time from urlhistory where "
+        "chan=? and url=? order by time desc",
+        (chan, url),
+    ).fetchall()
 
 def get_title(url):
     for ignored_url in ignored_title_urls:
@@ -65,9 +70,9 @@ def nicklist(nicks):
     nicks.sort(key=lambda n: n.lower())
 
     if len(nicks) <= 2:
-        return ' and '.join(nicks)
+        return " and ".join(nicks)
     else:
-        return ', and '.join((', '.join(nicks[:-1]), nicks[-1]))
+        return ", and ".join((", ".join(nicks[:-1]), nicks[-1]))
 
 def format_reply(url, history):
     title = get_title(url)
@@ -79,7 +84,7 @@ def format_reply(url, history):
     last_time = timesince.timesince(recent_time)
 
     hour_span = math.ceil(old_div((time.time() - history[-1][1]), 3600))
-    hour_span = '%.0f hours' % hour_span if hour_span > 1 else 'hour'
+    hour_span = "%.0f hours" % hour_span if hour_span > 1 else "hour"
 
     hlen = len(history)
     ordinal = ["once", "twice", "%d times" % hlen][min(hlen, 3) - 1]
@@ -99,10 +104,10 @@ def format_reply(url, history):
         ordinal,
         hour_span,
         nicklist([h[0] for h in history]),
-        last
+        last,
     )
 
-@hook.regex(r'([a-zA-Z]+://|www\.)[^ ]+')
+@hook.regex(r"([a-zA-Z]+://|www\.)[^ ]+")
 def urlinput(match, nick='', chan='', db=None, bot=None):
     db_init(db)
     url = urlnorm.normalize(match.group())
@@ -115,6 +120,6 @@ def urlinput(match, nick='', chan='', db=None, bot=None):
 
         for name in dict(history):
             if name.lower() in inp:  # person was probably quoting a line
-                return               # that had a link. don't remind them.
+                return  # that had a link. don't remind them.
 
         return format_reply(url, history)

@@ -10,23 +10,23 @@ import queue
 from ssl import wrap_socket, CERT_NONE, CERT_REQUIRED, SSLError
 
 
-DEFAULT_NAME = 'skybot'
-DEFAULT_REALNAME = 'Python bot - http://github.com/rmmh/skybot'
-DEFAULT_NICKSERV_NAME = 'nickserv'
-DEFAULT_NICKSERV_COMMAND = 'IDENTIFY %s'
+DEFAULT_NAME = "skybot"
+DEFAULT_REALNAME = "Python bot - http://github.com/rmmh/skybot"
+DEFAULT_NICKSERV_NAME = "nickserv"
+DEFAULT_NICKSERV_COMMAND = "IDENTIFY %s"
 
 
 def decode(txt):
-    for codec in ('utf-8', 'iso-8859-1', 'shift_jis', 'cp1252'):
+    for codec in ("utf-8", "iso-8859-1", "shift_jis", "cp1252"):
         try:
             return txt.decode(codec)
         except UnicodeDecodeError:
             continue
 
-    return txt.decode('utf-8', 'ignore')
+    return txt.decode("utf-8", "ignore")
 
 
-def censor(text, censored_strings = None):
+def censor(text, censored_strings=None):
     text = re.sub("[\n\r]+", " ", text)
 
     if not censored_strings:
@@ -45,8 +45,8 @@ class crlf_tcp(object):
     "Handles tcp connections that consist of utf-8 lines ending with crlf"
 
     def __init__(self, host, port, timeout=300):
-        self.ibuffer = b''
-        self.obuffer = b''
+        self.ibuffer = b""
+        self.obuffer = b""
         self.oqueue = queue.Queue()  # lines to be sent out
         self.iqueue = queue.Queue()  # lines that were received
         self.socket = self.create_socket()
@@ -62,7 +62,7 @@ class crlf_tcp(object):
             try:
                 self.socket.connect((self.host, self.port))
             except socket.timeout:
-                print('timed out connecting to %s:%s' % (self.host, self.port))
+                print("timed out connecting to %s:%s" % (self.host, self.port))
                 time.sleep(60)
             except socket.gaierror:
                 print('problem getting address info for %s' % (self.host))
@@ -104,16 +104,16 @@ class crlf_tcp(object):
                     return
                 continue
 
-            while b'\r\n' in self.ibuffer:
-                line, self.ibuffer = self.ibuffer.split(b'\r\n', 1)
+            while b"\r\n" in self.ibuffer:
+                line, self.ibuffer = self.ibuffer.split(b"\r\n", 1)
                 self.iqueue.put(decode(line))
 
     def send_loop(self):
         while True:
             line = self.oqueue.get().splitlines()[0][:500]
-            line = line.encode('utf-8', 'replace')
+            line = line.encode("utf-8", "replace")
             print(">>> {}".format(line))
-            self.obuffer += line + b'\r\n'
+            self.obuffer += line + b"\r\n"
             while self.obuffer:
                 sent = self.socket.send(self.obuffer)
                 self.obuffer = self.obuffer[sent:]
@@ -128,9 +128,11 @@ class crlf_ssl_tcp(crlf_tcp):
         crlf_tcp.__init__(self, host, port, timeout)
 
     def create_socket(self):
-        return wrap_socket(crlf_tcp.create_socket(self), server_side=False,
-                           cert_reqs=CERT_NONE if self.ignore_cert_errors else
-                           CERT_REQUIRED)
+        return wrap_socket(
+            crlf_tcp.create_socket(self),
+            server_side=False,
+            cert_reqs=CERT_NONE if self.ignore_cert_errors else CERT_REQUIRED,
+        )
 
     def recv_from_socket(self, nbytes):
         return self.socket.read(nbytes)
@@ -141,32 +143,35 @@ class crlf_ssl_tcp(crlf_tcp):
     def handle_receive_exception(self, error, last_timestamp):
         return crlf_tcp.handle_receive_exception(self, error, last_timestamp)
 
+
 def zip_channels(channels):
-    channels.sort(key=lambda x: ' ' not in x)  # keyed channels first
+    channels.sort(key=lambda x: " " not in x)  # keyed channels first
     chans = []
     keys = []
     for channel in channels:
-        if ' ' in channel:
-            chan, key = channel.split(' ')
+        if " " in channel:
+            chan, key = channel.split(" ")
             chans.append(chan)
             keys.append(key)
         else:
             chans.append(channel)
-    chans = ','.join(chans)
+    chans = ",".join(chans)
     if keys:
-        return [chans, ','.join(keys)]
+        return [chans, ",".join(keys)]
     else:
         return [chans]
 
+
 def test_zip_channels():
-    assert zip_channels(['#a', '#b c', '#d']) == ['#b,#a,#d', 'c']
-    assert zip_channels(['#a', '#b']) == ['#a,#b']
+    assert zip_channels(["#a", "#b c", "#d"]) == ["#b,#a,#d", "c"]
+    assert zip_channels(["#a", "#b"]) == ["#a,#b"]
+
 
 class IRC(object):
-    IRC_PREFIX_REM = re.compile(r'(.*?) (.*?) (.*)').match
-    IRC_NOPROFEIX_REM = re.compile(r'()(.*?) (.*)').match
-    IRC_NETMASK_REM = re.compile(r':?([^!@]*)!?([^@]*)@?(.*)').match
-    IRC_PARAM_REF = re.compile(r'(?:^|(?<= ))(:.*|[^ ]+)').findall
+    IRC_PREFIX_REM = re.compile(r"(.*?) (.*?) (.*)").match
+    IRC_NOPROFEIX_REM = re.compile(r"()(.*?) (.*)").match
+    IRC_NETMASK_REM = re.compile(r":?([^!@]*)!?([^@]*)@?(.*)").match
+    IRC_PARAM_REF = re.compile(r"(?:^|(?<= ))(:.*|[^ ]+)").findall
 
     "handles the IRC protocol"
     # see the docs/ folder for more information on the protocol
@@ -202,22 +207,22 @@ class IRC(object):
         _thread.start_new_thread(self.parse_loop, ())
 
     def set_conf(self, conf):
-        self.nick = conf.get('nick', DEFAULT_NAME)
-        self.user = conf.get('user', DEFAULT_NAME)
-        self.realname = conf.get('realname', DEFAULT_REALNAME)
-        self.user_mode = conf.get('mode', None)
+        self.nick = conf.get("nick", DEFAULT_NAME)
+        self.user = conf.get("user", DEFAULT_NAME)
+        self.realname = conf.get("realname", DEFAULT_REALNAME)
+        self.user_mode = conf.get("mode", None)
 
-        self.server_host = conf['server']
-        self.server_port = conf.get('port', 6667)
-        self.server_password = conf.get('server_password', None)
+        self.server_host = conf["server"]
+        self.server_port = conf.get("port", 6667)
+        self.server_password = conf.get("server_password", None)
 
-        self.nickserv_password = conf.get('nickserv_password', None)
-        self.nickserv_name = conf.get('nickserv_name', DEFAULT_NICKSERV_NAME)
-        self.nickserv_command = conf.get('nickserv_command', DEFAULT_NICKSERV_COMMAND)
+        self.nickserv_password = conf.get("nickserv_password", None)
+        self.nickserv_name = conf.get("nickserv_name", DEFAULT_NICKSERV_NAME)
+        self.nickserv_command = conf.get("nickserv_command", DEFAULT_NICKSERV_COMMAND)
 
-        self.channels = conf.get('channels', [])
-        self.admins = conf.get('admins', [])
-        self.censored_strings = conf.get('censored_strings', [])
+        self.channels = conf.get("channels", [])
+        self.admins = conf.get("admins", [])
+        self.censored_strings = conf.get("censored_strings", [])
 
         if self.conn is not None:
             self.join_channels()
@@ -249,11 +254,12 @@ class IRC(object):
             paramlist = self.IRC_PARAM_REF(params)
             lastparam = ""
             if paramlist:
-                if paramlist[-1].startswith(':'):
+                if paramlist[-1].startswith(":"):
                     paramlist[-1] = paramlist[-1][1:]
                 lastparam = paramlist[-1]
-            self.out.put([msg, prefix, command, params, nick, user, host,
-                          paramlist, lastparam])
+            self.out.put(
+                [msg, prefix, command, params, nick, user, host, paramlist, lastparam]
+            )
 
             if command == "PING":
                 self.cmd("PONG", paramlist)
@@ -271,11 +277,11 @@ class IRC(object):
 
     def cmd(self, command, params=None):
         if params:
-            params[-1] = ':' + params[-1]
+            params[-1] = ":" + params[-1]
 
             params = [censor(p, self.censored_strings) for p in params]
 
-            self.send(command + ' ' + ' '.join(params))
+            self.send(command + " " + " ".join(params))
         else:
             self.send(command)
 
@@ -288,7 +294,7 @@ class FakeIRC(IRC):
         self.set_conf(conf)
         self.out = queue.Queue()  # responses from the server are placed here
 
-        self.f = open(fn, 'rb')
+        self.f = open(fn, "rb")
 
         _thread.start_new_thread(self.parse_loop, ())
 
@@ -296,7 +302,7 @@ class FakeIRC(IRC):
         while True:
             msg = decode(self.f.readline()[9:])
 
-            if msg == '':
+            if msg == "":
                 print("!!!!DONE READING FILE!!!!")
                 return
 
@@ -308,11 +314,12 @@ class FakeIRC(IRC):
             paramlist = irc_param_ref(params)
             lastparam = ""
             if paramlist:
-                if paramlist[-1].startswith(':'):
+                if paramlist[-1].startswith(":"):
                     paramlist[-1] = paramlist[-1][1:]
                 lastparam = paramlist[-1]
-            self.out.put([msg, prefix, command, params, nick, user, host,
-                          paramlist, lastparam])
+            self.out.put(
+                [msg, prefix, command, params, nick, user, host, paramlist, lastparam]
+            )
             if command == "PING":
                 self.cmd("PONG", [params])
 
@@ -330,8 +337,8 @@ class SSLIRC(IRC):
     def set_conf(self, conf):
         super(SSLIRC, self).set_conf(conf)
 
-        self.server_port = conf.get('port', 6697)
-        self.server_ignore_cert = conf.get('ignore_cert', False)
+        self.server_port = conf.get("port", 6697)
+        self.server_ignore_cert = conf.get("ignore_cert", False)
 
     def create_connection(self):
         return crlf_ssl_tcp(self.server_host, self.server_port, self.server_ignore_cert)

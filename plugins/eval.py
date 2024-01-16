@@ -1,120 +1,144 @@
 import time
+import uuid
+import json
 
 from util import hook, http
 
 
-languages = {}
-statuses = {}
+def piston(language, version, content, filename=None):
+    api_url = "https://emkc.org/api/v2/piston/execute"
+
+    if not filename:
+        filename = str(uuid.uuid1())
+
+    payload = {
+        "language": language,
+        "version": version,
+        "files": [{"name": filename, "content": content}],
+        "stdin": "",
+        "args": [],
+        "compile_timeout": 5000,
+        "run_timeout": 5000,
+        "compile_memory_limit": -1,
+        "run_memory_limit": -1,
+    }
+
+    headers = {"Content-Type", "application/json"}
+
+    result = http.get_json(api_url, json_data=payload, get_methods="POST")
+
+    if result["run"]["stderr"] != "":
+        return "Error: " + result["run"]["stderr"]
+
+    return result["run"]["output"].replace("\n", " ")
+
+@hook.command
+def cpp(inp, nick=None):
+    headers = ['algorithm', 'any', 'array', 'atomic', 'bit', 'bitset',
+               'cassert', 'ccomplex', 'cctype', 'cerrno', 'cfenv', 'cfloat',
+               'charconv', 'chrono', 'cinttypes', 'ciso646', 'climits',
+               'clocale', 'cmath', 'codecvt', 'complex', 'complex.h',
+               'condition_variable', 'csetjmp', 'csignal', 'cstdalign',
+               'cstdarg', 'cstdbool', 'cstddef', 'cstdint', 'cstdio',
+               'cstdlib', 'cstring', 'ctgmath', 'ctime', 'cuchar', 'cwchar',
+               'cwctype', 'cxxabi.h', 'deque', 'exception', 'execution',
+               'fenv.h', 'filesystem', 'forward_list', 'fstream',
+               'functional', 'future', 'initializer_list', 'iomanip', 'ios',
+               'iosfwd', 'iostream', 'istream', 'iterator', 'limits', 'list',
+               'locale', 'map', 'math.h', 'memory', 'memory_resource', 'mutex',
+               'new', 'numeric', 'optional', 'ostream', 'queue', 'random',
+               'ratio', 'regex', 'scoped_allocator', 'set', 'shared_mutex',
+               'sstream', 'stack', 'stdexcept', 'stdlib.h', 'streambuf',
+               'string', 'string_view', 'system_error', 'tgmath.h', 'thread',
+               'tuple', 'typeindex', 'typeinfo', 'type_traits',
+               'unordered_map', 'unordered_set', 'utility', 'valarray',
+               'variant', 'vector', 'version']
+    header_includes = "\n".join([f"#include <{x}>" for x in headers])
+    contents = f"""
+        {header_includes}
+        using namespace std;
+        using namespace std::chrono_literals;
+        using namespace std::complex_literals;
+        using namespace std::string_literals;
+        using namespace std::string_view_literals;
+        int main() {{
+            {inp};
+        }}
+    """
+    return piston("c++", "10.2.0", contents, filename=nick)
 
 
-def fetch_languages():
-    lang_list = http.get_json("https://api.judge0.com/languages")
-    m = {x["name"].split()[0].lower(): x["id"] for x in lang_list[::-1]}
-    m.pop("text")
-    m.pop("executable")
-    m["python2"] = [x["id"] for x in lang_list if x["name"].startswith("Python (2")][0]
-    m["py"] = m["py3"] = m["python3"] = m["python"]
-    m["py2"] = m["python2"]
-    m["clj"] = m["clojure"]
-    m["cpp"] = m["c++"]
-    m["csharp"] = m["c#"]
-    m["node"] = m["js"] = m["javascript"]
-    m["rb"] = m["ruby"]
-
-    return m
+@hook.command
+def lua(inp, nick=None):
+    return piston("lua", "5.4.2", inp, filename=nick)
 
 
-def get_result(token):
-    url = "https://api.judge0.com/submissions/{}".format(token)
-
-    try:
-        result = http.get_json(url)
-    except http.HTTPError as e:
-        # Request failed, API is probably down (or dead given our luck with repl apis)
-        return e
-
-    status = result.get("status")
-
-    if not status:
-        return "Bad response from Judge0 API. Try again later."
-
-    status_id = status["id"]
-    status_description = status["description"]
-
-    if "Error" in status_description:
-        stderr = result.get("stderr", "")
-
-        return "{} {}".format(status_description, stderr)
-
-    # Processing, try again
-    if status_id in [1, 2]:
-        return None
-
-    # Accepted and completed, return result and profiler stats
-    if status_id == 3:
-        return "({time}s {memory}) {stdout}".format(**result)
+@hook.command("cl")
+def lisp(inp, nick=None):
+    return piston("lisp", "2.1.2", inp, filename=nick)
 
 
-def submit_code(language, code):
-    output = None
-
-    url = "https://api.judge0.com/submissions"
-
-    data = {"source_code": code, "language_id": languages[language]}
-
-    try:
-        result = http.get_json(url, post_data=data, get_method="POST")
-    except http.HTTPError as e:
-        return e
-
-    token = result.get("token")
-
-    if not token:
-        return "Missing submission token in response. API is probably down."
-
-    for n in range(10):
-        output = get_result(token)
-
-        if output:
-            break
-
-        time.sleep(1.3 ** n)
-
-    if output:
-        return output
-
-    return "API took to long to return a response. Try again later."
+@hook.command("elisp")
+@hook.command("el")
+def emacs(inp, nick=None):
+    return piston("emacs", "27.1.0", inp, filename=nick)
 
 
-@hook.command("eval", autohelp=False)
-def runcode(inp):
-    global languages
-    global statuses
+@hook.command("clj")
+def clojure(inp, nick=None):
+    return piston("clojure", "1.10.3", inp, filename=nick)
 
-    if not languages:
-        languages = fetch_languages()
 
-    if not statuses:
-        statuses = {
-            x["id"]: x for x in http.get_json("https://api.judge0.com/statuses")
-        }
+@hook.command("rs")
+def rust(inp, nick=None):
+    contents = "func main() {" + inp + "}";
+    return piston("rust", "1.50.0", contents, filename=nick)
 
-    inputs = inp.split(" ")
 
-    supported_languages = ", ".join(sorted(languages.keys()))
+@hook.command("py")
+@hook.command("py3")
+def python(inp, nick=None):
+    return piston("python", "3.10.0", inp, filename=nick)
 
-    try:
-        arg1, arg2 = inp.split(None, 1)
-    except ValueError:
-        return "eval <language> <code> - evaluate given code using language. Supported languages: {}".format(
-            supported_languages
-        )
 
-    if arg1 not in languages:
-        return "Language not supported, supported languages: {}".format(
-            supported_languages
-        )
+@hook.command("py2")
+def python2(inp, nick=None):
+    return piston("python2", "2.7.18", inp, filename=nick)
 
-    arg2 = " ".join(inputs[1:])
 
-    return submit_code(arg1, arg2)
+@hook.command("rb")
+def ruby(inp, nick=None):
+    return piston("ruby", "3.0.1", inp, filename=nick)
+
+
+@hook.command("ts")
+def typescript(inp, nick=None):
+    return piston("typescript", "4.2.3", inp, filename=nick)
+
+
+@hook.command("js")
+@hook.command("node")
+def javascript(inp, nick=None):
+    return piston("javascript", "16.3.0", inp, filename=nick)
+
+
+@hook.command
+def perl(inp, nick=None):
+    return piston("perl", "5.26.1", inp, filename=nick)
+
+
+@hook.command
+def php(inp, nick=None):
+    contents = "<?php" + inp + "?>"
+    return piston("php", "8.0.2", contents, filename=nick)
+
+
+@hook.command
+def swift(inp, nick=None):
+    return piston("swift", "5.3.3", inp, filename=nick)
+
+
+if __name__ == "__main__":
+    result = piston("py", "3.9.4", "print('test')")
+
+    print(result)
