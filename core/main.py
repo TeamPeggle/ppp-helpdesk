@@ -15,6 +15,14 @@ class Input(dict):
     def __init__(
         self, conn, raw, prefix, command, params, nick, user, host, paraml, msg
     ):
+        lastparam = paraml[-1]
+
+        if nick == 'ppp-discord':
+            matterbridge_match = re.compile(r'^([^<>]+)> (.+)').match(lastparam)
+            if matterbridge_match:
+                # This is a matterbridge gateway so we need to do some remapping
+                nick = matterbridge_match.group(1)
+                lastparam = matterbridge_match.group(2)
 
         server = conn.server_host
 
@@ -76,7 +84,7 @@ class Input(dict):
             unban=unban,
             me=me,
             set_nick=set_nick,
-            lastparam=paraml[-1],
+            lastparam=lastparam,
         )
 
     # make dict keys accessible as attributes
@@ -231,13 +239,6 @@ def test_make_command_re():
 def main(conn, out):
     inp = Input(conn, *out)
 
-    if inp.nick == 'ppp-discord':
-      matterbridge_match = re.compile(r'^([^<>]+)> (.+)').match(inp.lastparam)
-      if matterbridge_match:
-        # This is a matterbridge gateway so we need to do some remapping
-        inp.nick = matterbridge_match.group(1)
-        inp.lastparam = matterbridge_match.group(2)
-  
     # EVENTS
     for func, args in bot.events[inp.command] + bot.events["*"]:
         dispatch(Input(conn, *out), "event", func, args)
