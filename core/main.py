@@ -231,6 +231,13 @@ def test_make_command_re():
 def main(conn, out):
     inp = Input(conn, *out)
 
+    if inp.nick == 'ppp-discord':
+      matterbridge_match = re.compile(r'^([^<>]+)> (.+)').match(inp.lastparam)
+      if matterbridge_match:
+        # This is a matterbridge gateway so we need to do some remapping
+        inp.nick = matterbridge_match.group(1)
+        inp.lastparam = matterbridge_match.group(2)
+  
     # EVENTS
     for func, args in bot.events[inp.command] + bot.events["*"]:
         dispatch(Input(conn, *out), "event", func, args)
