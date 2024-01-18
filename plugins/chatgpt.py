@@ -54,7 +54,7 @@ def chatgpt(inp, api_key=None, reply=None):
             "model": "gpt-3.5-turbo",
             "messages": [{"role": "system", "content": initial_prompt}] + prompt_memory
         })
-    except HTTPError:
+    except (HTTPError, TimeoutError):
         # Remove the most recent thing because we didn't keep it
         prompt_memory.pop()
         return "My brain is on fire!  Try again later."
