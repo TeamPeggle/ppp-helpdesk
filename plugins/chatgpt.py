@@ -44,6 +44,10 @@ def chatgpt(inp, api_key=None, reply=None):
     if not api_key:
         return
 
+    if inp == 'huff':
+        prompt_memory.clear()
+        return chatgpt("you are now very high", api_key=api_key, reply=reply)
+    
     prompt_memory.append({"role": "user", "content": inp})
 
     # Forget until we only remember the right amount
