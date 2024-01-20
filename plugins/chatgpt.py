@@ -46,7 +46,7 @@ def chatgpt(inp, api_key=None, reply=None):
 
     if inp == 'huff':
         prompt_memory.clear()
-        return chatgpt("you are now very high", api_key=api_key, reply=reply)
+        return chatgpt("From now on, act like you have just huffed a lot of paint and are very high.", api_key=api_key, reply=reply)
     
     prompt_memory.append({"role": "user", "content": inp})
 
