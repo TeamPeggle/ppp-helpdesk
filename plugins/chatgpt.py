@@ -1,4 +1,5 @@
 from urllib.error import HTTPError
+import json
 
 from util import hook, http
 
@@ -33,6 +34,20 @@ prompt_memory = []
 MEMORY_LIMIT = 16
 
 
+def is_insufficient_quota(error):
+    if not isinstance(error, HTTPError):
+        return False
+
+    try:
+        body = json.loads(error.fp.read())
+        if body["error"]["type"] == "insufficient_quota":
+            return True
+    except:
+        pass
+
+    return False
+
+
 @hook.api_key("openai")
 @hook.command("gpt")
 @hook.command
@@ -61,9 +76,13 @@ def chatgpt(inp, api_key=None, reply=None):
             "model": "gpt-3.5-turbo",
             "messages": [{"role": "system", "content": initial_prompt}] + prompt_memory
         })
-    except (HTTPError, TimeoutError):
+    except (HTTPError, TimeoutError) as e:
         # Remove the most recent thing because we didn't keep it
         prompt_memory.pop()
+
+        if is_insufficient_quota(e):
+            return "My brain is on fire!  Gimme 5bux or wait until next month bub."
+
         return "My brain is on fire!  Try again later."
 
     if 'error' in result:
