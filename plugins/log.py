@@ -102,12 +102,17 @@ def log(paraml, input=None, bot=None):
         input.chan = 'error'
 
     if input.chan == '*':
-        reply_code = int(input.command)
+        input.chan = 'server'
 
-        if 400 <= reply_code <= 599:
-            input.chan = 'error'
-        else:
-            input.chan = 'server'
+        try:
+            reply_code = int(input.command)
+
+            if 400 <= reply_code <= 599:
+                input.chan = 'error'
+
+        except ValueError:
+            pass
+
 
 
     beau = beautify(input)
