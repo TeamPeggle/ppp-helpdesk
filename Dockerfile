@@ -50,7 +50,7 @@ RUN poetry install --no-root --only main
 # Final image used for runtime
 FROM python-base as production
 
-ENV SKYBOT_CONFIG="/config/skybot.json"
+ENV SKYBOT_CONFIG=""
 
 RUN DEBIAN_FRONTEND=noninteractive apt-get update && \
     apt-get install -y --no-install-recommends \
