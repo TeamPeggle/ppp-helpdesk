@@ -1,8 +1,8 @@
-from __future__ import unicode_literals
 
 import re
 
 from util import hook, http
+from urllib.error import HTTPError
 
 
 @hook.command("u")
@@ -93,11 +93,12 @@ def define(inp):
 def etymology(inp):
     ".e/.etymology <word> -- Retrieves the etymology of chosen word"
 
-    h = http.get_html("https://www.etymonline.com/search", q=inp)
-
-    etym = h.xpath("string(//section[1])")
-
-    if not etym:
+    try:
+        h = http.get_html(f'https://www.etymonline.com/word/{http.quote_plus(inp)}')
+        etym = h.xpath('//section[starts-with(@class, "prose-lg")]/section')[0].text_content()
+    except IndexError:
+        return "No etymology found for " + inp
+    except HTTPError:
         return "No etymology found for " + inp
 
     etym = etym.replace(inp, "\x02%s\x02" % inp)

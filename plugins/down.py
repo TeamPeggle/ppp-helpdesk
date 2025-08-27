@@ -16,7 +16,7 @@ def down(inp):
         else:
             return 'Steam seems to be down ): - http://issteamdown.com/';
 
-    # urlparse follows RFC closely, so we have to check for schema existance and prepend empty schema if necessary
+    # urlparse follows RFC closely, so we have to check for schema existence and prepend empty schema if necessary
     if not inp.startswith("//") and "://" not in inp:
         inp = "//" + inp
 
