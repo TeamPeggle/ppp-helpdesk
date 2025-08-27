@@ -8,6 +8,7 @@ with hooks():
     from urllib.parse import quote
 
 from util import hook, http
+import random
 
 @hook.command
 def tarot(inp):
@@ -19,7 +20,7 @@ def tarot(inp):
     except HTTPError:
         return "The spirits are displeased."
 
-    return card["name"] + ": " + ", ".join(card["keywords"])
+    return card["name"] + ": upright - " + (", ".join(card["upright"])) + "; reversed - " + (", ".join(card["reversed"]))
 
 @hook.command(autohelp=False)
 def fortune(inp):
@@ -33,6 +34,7 @@ def fortune(inp):
         return "The spirits are displeased."
 
     card = cards[0]
+    orientation = random.choice(["upright", "reversed"])
 
-    return card["name"] + ": " + ", ".join(card["keywords"])
+    return card["name"] + ": " + ", ".join(card[orientation])
 
