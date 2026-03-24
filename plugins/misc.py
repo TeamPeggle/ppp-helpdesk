@@ -9,7 +9,7 @@ socket.setdefaulttimeout(10)  # global setting
 
 def get_version():
     try:
-        stdout = subprocess.check_output(["git", "log", "--format=%h"])
+        stdout = subprocess.check_output(["git", "log", "--format=%h"]).decode("utf-8")
     except:
         revnumber = 0
         shorthash = "????"
@@ -17,13 +17,6 @@ def get_version():
         revs = stdout.splitlines()
         revnumber = len(revs)
         shorthash = revs[0]
-
-    shorthash = shorthash.decode("utf-8")
-
-    http.ua_skybot = "Skybot/r%d %s (http://github.com/rmmh/skybot)" % (
-        revnumber,
-        shorthash,
-    )
 
     return shorthash, revnumber
 
@@ -60,7 +53,11 @@ def onjoin(paraml, conn=None):
     conn.join_channels()
 
     # set user-agent as a side effect of reading the version
-    get_version()
+    shorthash, revnumber = get_version()
+    http.ua_skybot = "Skybot/r%d %s (http://github.com/rmmh/skybot)" % (
+        revnumber,
+        shorthash,
+    )
 
 
 @hook.regex(r"^\x01VERSION\x01$")
